@@ -6,7 +6,7 @@ import esm
 from model import SeqAdapter
 from config import Paths, FeatureModels, save_json
 
-def read_fasta(path, cap=2_000_000):
+def read_fasta(path, cap=4_000_000):
     seqs, name, buf = {}, None, []
     for line in open(path):
         line = line.strip()
@@ -84,7 +84,7 @@ def main():
             torch.nn.utils.clip_grad_norm_(adapter.parameters(), 1.0)
             opt.step()
             tot += float(loss)
-            nb += 1
+            nb += 1; print(f"[{__import__('time').strftime('%H:%M:%S')}] ep{ep} nb={nb} avg={tot/nb:.4f}", flush=True) if nb % 500 == 0 else None
             if a.max_batches_per_epoch and nb >= a.max_batches_per_epoch:
                 break
         print(f"SSL ep{ep}: loss={tot / max(nb, 1):.4f} batches={nb}")

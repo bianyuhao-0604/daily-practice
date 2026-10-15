@@ -12,7 +12,7 @@ name, buf = None, []
 def flush():
     global kept
     if name is not None and kept % STRIDE == 0:
-        out.write(name + "\n" + "\n".join(buf[i:i+80] for i in range(0, len(buf), 80)) + "\n")
+        out.write(name + "\n" + "\n".join("".join(buf)[i:i+80] for i in range(0, len("".join(buf)), 80)) + "\n")
     kept += 1
 with gzip.open(SRC, "rt") as f:
     for line in f:
@@ -35,12 +35,12 @@ for line in open("ssl_dedup_rep_seq.fasta"):
     line = line.strip()
     if line.startswith(">"):
         if name is not None and name.split()[0][1:] in keep:
-            out.write(name + "\n" + "\n".join(buf[i:i+80] for i in range(0, len(buf), 80)) + "\n"); n += 1
+            out.write(name + "\n" + "\n".join("".join(buf)[i:i+80] for i in range(0, len("".join(buf)), 80)) + "\n"); n += 1
         name, buf = line, []
     else:
         buf.append(line)
 if name is not None and name.split()[0][1:] in keep:
-    out.write(name + "\n" + "\n".join(buf[i:i+80] for i in range(0, len(buf), 80)) + "\n"); n += 1
+    out.write(name + "\n" + "\n".join("".join(buf)[i:i+80] for i in range(0, len("".join(buf)), 80)) + "\n"); n += 1
 out.close(); print("final SSL seqs:", n)
 PY
-rm -rf tmp tmp2 ssl_sub8m.fasta ssl_dedup* hits.m8 keep_ids.txt   # 清理 15–30GB 中间文件
+#rm -rf tmp tmp2 ssl_sub8m.fasta ssl_dedup* hits.m8 keep_ids.txt   # 清理 15–30GB 中间文件
