@@ -79,6 +79,7 @@ Thumbs.db
 *.bz2
 *.7z
 *.cif
+*.xlsx
 # 常用的数据结构化文件（可能包含大量数据）
 *.pkl
 *.pickle
