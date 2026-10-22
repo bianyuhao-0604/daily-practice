@@ -1,0 +1,474 @@
+{
+ "time": "20261022_152228",
+ "root": "D:\\pythonprojects\\practice-github\\ppi_full",
+ "items": [
+  {
+   "stage": "env",
+   "name": "torch",
+   "status": "INFO",
+   "detail": "2.6.0+cu124"
+  },
+  {
+   "stage": "env",
+   "name": "GPU",
+   "status": "INFO",
+   "detail": "NVIDIA GeForce RTX 4060 Laptop GPU, 8.0 GiB, cc 8.9"
+  },
+  {
+   "stage": "env",
+   "name": "bf16 支持",
+   "status": "INFO",
+   "detail": "True"
+  },
+  {
+   "stage": "env",
+   "name": "磁盘剩余",
+   "status": "INFO",
+   "detail": "372 GiB"
+  },
+  {
+   "stage": "data",
+   "name": "train.csv 行数",
+   "status": "INFO",
+   "detail": "163192 行, 列=['pid_a', 'pid_b', 'label']"
+  },
+  {
+   "stage": "data",
+   "name": "train NaN",
+   "status": "PASS",
+   "detail": "NaN=0"
+  },
+  {
+   "stage": "data",
+   "name": "train 标签域",
+   "status": "PASS",
+   "detail": "取值=[0, 1]"
+  },
+  {
+   "stage": "data",
+   "name": "train 自环",
+   "status": "PASS",
+   "detail": "pid_a==pid_b 共 0 行"
+  },
+  {
+   "stage": "data",
+   "name": "train 重复无序对",
+   "status": "PASS",
+   "detail": "0 行重复"
+  },
+  {
+   "stage": "data",
+   "name": "train 阳性率",
+   "status": "INFO",
+   "detail": "pos=81596 neg=81596 ratio=0.5000"
+  },
+  {
+   "stage": "data",
+   "name": "val.csv 行数",
+   "status": "INFO",
+   "detail": "59260 行, 列=['pid_a', 'pid_b', 'label']"
+  },
+  {
+   "stage": "data",
+   "name": "val NaN",
+   "status": "PASS",
+   "detail": "NaN=0"
+  },
+  {
+   "stage": "data",
+   "name": "val 标签域",
+   "status": "PASS",
+   "detail": "取值=[0, 1]"
+  },
+  {
+   "stage": "data",
+   "name": "val 自环",
+   "status": "PASS",
+   "detail": "pid_a==pid_b 共 0 行"
+  },
+  {
+   "stage": "data",
+   "name": "val 重复无序对",
+   "status": "PASS",
+   "detail": "0 行重复"
+  },
+  {
+   "stage": "data",
+   "name": "val 阳性率",
+   "status": "INFO",
+   "detail": "pos=29630 neg=29630 ratio=0.5000"
+  },
+  {
+   "stage": "data",
+   "name": "test.csv 行数",
+   "status": "INFO",
+   "detail": "52048 行, 列=['pid_a', 'pid_b', 'label']"
+  },
+  {
+   "stage": "data",
+   "name": "test NaN",
+   "status": "PASS",
+   "detail": "NaN=0"
+  },
+  {
+   "stage": "data",
+   "name": "test 标签域",
+   "status": "PASS",
+   "detail": "取值=[0, 1]"
+  },
+  {
+   "stage": "data",
+   "name": "test 自环",
+   "status": "PASS",
+   "detail": "pid_a==pid_b 共 0 行"
+  },
+  {
+   "stage": "data",
+   "name": "test 重复无序对",
+   "status": "PASS",
+   "detail": "0 行重复"
+  },
+  {
+   "stage": "data",
+   "name": "test 阳性率",
+   "status": "INFO",
+   "detail": "pos=26024 neg=26024 ratio=0.5000"
+  },
+  {
+   "stage": "data",
+   "name": "P7 蛋白不相交 train&val",
+   "status": "PASS",
+   "detail": "交集 0 个"
+  },
+  {
+   "stage": "data",
+   "name": "P7 蛋白不相交 train&test",
+   "status": "PASS",
+   "detail": "交集 0 个"
+  },
+  {
+   "stage": "data",
+   "name": "P7 蛋白不相交 val&test",
+   "status": "PASS",
+   "detail": "交集 0 个"
+  },
+  {
+   "stage": "data",
+   "name": "配对重叠 train&val",
+   "status": "PASS",
+   "detail": "0 对"
+  },
+  {
+   "stage": "data",
+   "name": "配对重叠 train&test",
+   "status": "PASS",
+   "detail": "0 对"
+  },
+  {
+   "stage": "data",
+   "name": "配对重叠 val&test",
+   "status": "PASS",
+   "detail": "0 对"
+  },
+  {
+   "stage": "features",
+   "name": "meta.n",
+   "status": "WARN",
+   "detail": "n=11018, pid2idx=11020, has_text=11018, has_genome=11018（pid2idx 与 n 不一致，见下面的死键/越界判定）"
+  },
+  {
+   "stage": "features",
+   "name": "磁盘占用",
+   "status": "INFO",
+   "detail": "40.76 GiB"
+  },
+  {
+   "stage": "features",
+   "name": "划分 pid 全覆盖",
+   "status": "PASS",
+   "detail": "274500 行中缺特征 0 行"
+  },
+  {
+   "stage": "features",
+   "name": "被引用索引重复",
+   "status": "PASS",
+   "detail": "全库重复索引 2 处，均为 uniprot_primary_map.txt 背书的构建期别名（同 UniProt 条目主/次登录号，同序列，功能无损）: idx 10657 ← ['Q8IXS6', 'Q9Y2D5']"
+  },
+  {
+   "stage": "features",
+   "name": "被引用索引值域",
+   "status": "PASS",
+   "detail": "11019 个被引用蛋白的索引全部在 [0,11018)"
+  },
+  {
+   "stage": "features",
+   "name": "未被引用的键",
+   "status": "WARN",
+   "detail": "1 个: ['Q86VQ6']"
+  },
+  {
+   "stage": "features",
+   "name": "lengths",
+   "status": "PASS",
+   "detail": "min=51 med=465 max=1022 触顶=1592"
+  },
+  {
+   "stage": "features",
+   "name": "plddt 值域",
+   "status": "PASS",
+   "detail": "采样 min=0.0 max=100.0 mean=38.5"
+  },
+  {
+   "stage": "features",
+   "name": "seq.npy 形状",
+   "status": "PASS",
+   "detail": "(11018, 1022, 1280)（期望 (11018, 1022, 1280)）"
+  },
+  {
+   "stage": "features",
+   "name": "seq 采样 NaN/Inf",
+   "status": "PASS",
+   "detail": "NaN=0 Inf=0"
+  },
+  {
+   "stage": "features",
+   "name": "seq 非平凡性",
+   "status": "PASS",
+   "detail": "|max|=9.4375"
+  },
+  {
+   "stage": "features",
+   "name": "seq padding=0（采样）",
+   "status": "PASS",
+   "detail": "0/512 行越界非零"
+  },
+  {
+   "stage": "features",
+   "name": "seq 全库 NaN/Inf",
+   "status": "PASS",
+   "detail": "0 处"
+  },
+  {
+   "stage": "features",
+   "name": "str.npy",
+   "status": "FAIL",
+   "detail": "缺失或损坏"
+  },
+  {
+   "stage": "features",
+   "name": "surf.npy",
+   "status": "FAIL",
+   "detail": "缺失或损坏"
+  },
+  {
+   "stage": "features",
+   "name": "iface.npy",
+   "status": "FAIL",
+   "detail": "缺失或损坏"
+  },
+  {
+   "stage": "features",
+   "name": "text.npy 形状",
+   "status": "PASS",
+   "detail": "(11018, 128)（期望 (11018,128)）"
+  },
+  {
+   "stage": "features",
+   "name": "text.npy dtype",
+   "status": "WARN",
+   "detail": "float16（建议 float32）"
+  },
+  {
+   "stage": "features",
+   "name": "text 与 has 标记一致（采样）",
+   "status": "PASS",
+   "detail": "0/512 行不符（has=1 应非零 / has=0 应全零）"
+  },
+  {
+   "stage": "features",
+   "name": "text 全库 NaN/Inf",
+   "status": "PASS",
+   "detail": "0 处"
+  },
+  {
+   "stage": "features",
+   "name": "genome.npy 形状",
+   "status": "PASS",
+   "detail": "(11018, 256)（期望 (11018,256)）"
+  },
+  {
+   "stage": "features",
+   "name": "genome.npy dtype",
+   "status": "WARN",
+   "detail": "float16（建议 float32）"
+  },
+  {
+   "stage": "features",
+   "name": "genome 与 has 标记一致（采样）",
+   "status": "PASS",
+   "detail": "0/512 行不符（has=1 应非零 / has=0 应全零）"
+  },
+  {
+   "stage": "features",
+   "name": "genome 全库 NaN/Inf",
+   "status": "PASS",
+   "detail": "0 处"
+  },
+  {
+   "stage": "ssl",
+   "name": "adapter 参数量",
+   "status": "PASS",
+   "detail": "331648（审计指纹 331,648）"
+  },
+  {
+   "stage": "ssl",
+   "name": "adapter 键与形状",
+   "status": "PASS",
+   "detail": "异常键: 无"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed1234 metrics",
+   "status": "PASS",
+   "detail": "test auprc=0.6512"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed1234 labels 对齐",
+   "status": "PASS",
+   "detail": "n=52048, 与首 seed 一致=True"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed1234 参数指纹",
+   "status": "PASS",
+   "detail": "1045569（期望 1045569）"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed2024 metrics",
+   "status": "PASS",
+   "detail": "test auprc=0.6330"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed2024 labels 对齐",
+   "status": "PASS",
+   "detail": "n=52048, 与首 seed 一致=True"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed2024 参数指纹",
+   "status": "PASS",
+   "detail": "1045569（期望 1045569）"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed42 metrics",
+   "status": "PASS",
+   "detail": "test auprc=0.6175"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed42 labels 对齐",
+   "status": "PASS",
+   "detail": "n=52048, 与首 seed 一致=True"
+  },
+  {
+   "stage": "runs",
+   "name": "R0/seed42 参数指纹",
+   "status": "PASS",
+   "detail": "1045569（期望 1045569）"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed1234 metrics",
+   "status": "PASS",
+   "detail": "test auprc=0.6904"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed1234 labels 对齐",
+   "status": "PASS",
+   "detail": "n=52048, 与首 seed 一致=True"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed1234 参数指纹",
+   "status": "PASS",
+   "detail": "3823875（期望 3823875）"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed2024 metrics",
+   "status": "PASS",
+   "detail": "test auprc=0.6902"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed2024 labels 对齐",
+   "status": "PASS",
+   "detail": "n=52048, 与首 seed 一致=True"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed2024 参数指纹",
+   "status": "PASS",
+   "detail": "3823875（期望 3823875）"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed42 metrics",
+   "status": "PASS",
+   "detail": "test auprc=0.6927"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed42 labels 对齐",
+   "status": "PASS",
+   "detail": "n=52048, 与首 seed 一致=True"
+  },
+  {
+   "stage": "runs",
+   "name": "R1/seed42 参数指纹",
+   "status": "PASS",
+   "detail": "3823875（期望 3823875）"
+  },
+  {
+   "stage": "runs",
+   "name": "R2/seed1234 产物",
+   "status": "FAIL",
+   "detail": "缺 metrics.json"
+  },
+  {
+   "stage": "runs",
+   "name": "R2/seed1234 产物",
+   "status": "FAIL",
+   "detail": "缺 predictions.npz"
+  },
+  {
+   "stage": "runs",
+   "name": "R2/seed1234 产物",
+   "status": "FAIL",
+   "detail": "缺 ckpt.pt"
+  },
+  {
+   "stage": "runs",
+   "name": "R2/seed42 metrics",
+   "status": "PASS",
+   "detail": "test auprc=0.6888"
+  },
+  {
+   "stage": "runs",
+   "name": "R2/seed42 labels 对齐",
+   "status": "PASS",
+   "detail": "n=52048, 与首 seed 一致=True"
+  },
+  {
+   "stage": "runs",
+   "name": "R2/seed42 参数指纹",
+   "status": "PASS",
+   "detail": "4155523（期望 4155523）"
+  }
+ ]
+}
