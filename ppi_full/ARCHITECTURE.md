@@ -76,6 +76,11 @@
 | [`prep/build_store_meta.py`](prep/build_store_meta.py) | 骨架库：`meta.json` + `lengths.npy` + `plddt.npy` |
 | [`prep/preflight_seq.py`](prep/preflight_seq.py) | 序列预检：fair-esm 可用性、header 格式（pipe/plain）、补漏、校正 `lengths.npy` |
 | [`prep/run_seq_extract.py`](prep/run_seq_extract.py) | 断点续跑地调 ESM-2 提取（可跳过已完成的散文件） |
+| [`prep/run_str_extract.py`](prep/run_str_extract.py) | 断点续跑地调 **ProstT5** 提取 `str` 通道（bf16、OOM 自动降批、校验 `(L,1024)`） |
+| [`prep/collect_channels.py`](prep/collect_channels.py) | **单通道**增量入库（只 `open_memmap` 目标通道，零散文件拒绝 + 覆盖率闸门） |
+| [`prep/surf_from_npz.py`](prep/surf_from_npz.py) | 由 `struct_npz` + FASTA 重算 surf/iface（无需 CIF/biopython，可并行） |
+| [`prep/run_text_extract.py`](prep/run_text_extract.py) | UniProt 文本 → `all-mpnet-base-v2` 句向量 → **仅 train 蛋白上 fit** 的 PCA(128)，写 `text_{pid}.npy` |
+| [`prep/fetch_missing_struct.py`](prep/fetch_missing_struct.py) | 对"meta 有、`struct_npz` 无"的蛋白按 **v6→v5→v4** 下载 AFDB CIF 并解析成 npz |
 | [`prep/build_seq_store.py`](prep/build_seq_store.py) | **只建 seq 通道**的增量建库 + 自带两阶段验收（Phase1 collect / Phase2 verify） |
 | [`prep/geo_worker.py`](prep/geo_worker.py) | 几何描述子的多进程并行版（单条异常记账不炸池） |
 | [`prep/ssl_prepare.sh`](prep/ssl_prepare.sh) | SSL 语料制备：UniRef50 1/8 抽样 → MMseqs2 30% 聚类 → 剔除与 Bernett ≥30% 相似 |
@@ -391,16 +396,22 @@ L = BCEWithLogits(logit, smooth(y; ε=0.05))                    # 标签平滑
 只认后一种 → 按前者命名的 10,915 个蛋白会被判为"缺结构"。
 **修法**：解析时依次尝试两种命名（或优先用已解析好的 `struct_npz/{pid}.npz`，其中已含 `ca` 坐标与 `plddt`）。
 
-### 7.7 `descriptors()` 的残基编码 bug（**未触发，但是真的**）
-`parse_cif` 把 Bio.PDB 的 `get_resname()`（三字母，如 `ALA`）直接传给 `descriptors()`，
+### 7.7 残基编码 bug（**已修复：F1**）
+`parse_cif` 曾把 Bio.PDB 的 `get_resname()`（三字母，如 `ALA`）直接传给 `descriptors()`，
 而后者用一字母集合判断：`HYDRO=set("AVILMFWC")`、`ARO=set("FWY")`、`POS/NEG`。
-三字母永不命中 → `grp` 恒为 2，导致 80 维里 **19–27、28–32、63–64 等位恒为常数**（氨基酸组成类特征全废）。
-因为 surf 通道从未真正提取过，此 bug 尚未污染任何实验数据。**重建 surf 时必须做三字母→一字母映射**。
+三字母永不命中 → `grp` 恒为 2，导致 80 维里 **19–27、28–32、63–64 共 16 维恒为常数**（占 20%）。
+
+修复（2026-10-23）：
+- [`features/extract_surf.py`](features/extract_surf.py) 新增 `THREE2ONE` / `to_one_letter()`，`parse_cif` 转换后再交给
+  `descriptors()`；`Bio.PDB` 改为函数内延迟导入（无 biopython 也能复用描述子）。
+- 新增 [`prep/surf_from_npz.py`](prep/surf_from_npz.py)：直接由 `struct_npz` + `sequences_primary.fasta`
+  取一字母残基名，**不需要 CIF、biopython、网络**。
+- 实测：这 16 维的 std 从 0 → 0.15~0.47；几何列 0–18 新旧最大差 2.4e-4（仅 float16 舍入）。
 
 ### 7.8 其它
 | 位置 | 问题 |
 |---|---|
-| [`config.FeatureModels`](config.py) | `prostt5` 写的是 `athleted/prostt5`，实际 HF 仓库是 `Rostlab/ProstT5`（源码注释已标"用前核对"） |
+| [`config.FeatureModels`](config.py) | ~~`prostt5` 写成 `athleted/prostt5`~~ → **已修正为 `Rostlab/ProstT5`（F2）** |
 | [`features/extract_text_genome.py`](features/extract_text_genome.py) | `proteinclip` / `glm2` 均为 `NotImplementedError` 接入点 |
 | [`prep/verify_store.py`](prep/verify_store.py) | 硬断言三通道存在，缺通道时不能用；应改用 `verify_store2.py` |
 | [`prep/run_knowledge_probe.py`](prep/run_knowledge_probe.py) 与 [`probe_konwledge_lr.py`](probe_konwledge_lr.py) | 写同一个 `runs/probe_knowledge_lr.json`，会互相覆盖（且测量对象不同） |
@@ -409,29 +420,47 @@ L = BCEWithLogits(logit, smooth(y; ε=0.05))                    # 标签平滑
 
 ---
 
-## 8. 当前状态（2026-10-22 实测）
+## 8. 当前状态（2026-10-23 实测）
 
 | 资产 | 状态 | 证据 |
 |---|---|---|
 | 数据划分 | ✅ 完成 | train 163,192 / val 59,260 / test 52,048；正负各半；三集蛋白零交集 |
-| `seq.npy` | ✅ 完成 | `(11018,1022,1280)` float16，26.85 GiB；非平凡性 `|max|=9.44` |
-| `text.npy` / `genome.npy` | ✅ 完成 | `(11018,128)` / `(11018,256)`，`has_*=1` 全命中 |
+| `seq.npy` | ✅ 完成 | `(11018,1022,1280)` float16，26.85 GiB；非平凡性 `maxabs=9.44` |
+| `surf.npy` | ✅ **本次补齐** | `(11018,1022,80)` float16，1.72 GB；`maxabs=247.6`；padding=0；NaN/Inf=0 |
+| `iface.npy` | ✅ **本次补齐** | `(11018,1022)` float16，21.5 MB；`maxabs=0.859`；padding=0；NaN/Inf=0 |
+| `str.npy` | ✅ **本次补齐** | `(11018,1022,1024)` float16，22.0 GB；`maxabs=3.17`；NaN/Inf=0；64/64 采样行非零；抽样 3 行与散文件 **bitwise 相等** |
+| `text.npy` | ✅ **本次补齐** | `(11018,128)` float16，2.7 MB；`maxabs=0.4753`；NaN/Inf=0；PCA 仅在 **4,286 个 train 蛋白**上 fit（`evr=0.872`）；`has_text=11018/11018` |
+| `genome.npy` | ❌ **无原料** | 全盘无任何基因组/DNA/GFF 文件（只有 `ssl/uniref50_lt30.fasta`，与基因组非同源概念）；`has_genome=0/11018` → `genome_mask` 全 0，R7 与 R6 **数值等价** |
 | `lengths.npy` / `plddt.npy` | ✅ 完成 | lengths 51–1022（触顶 1592 个）；pLDDT 0–100 |
-| `str.npy` | ❌ **缺失** | 无散文件 `str_*.npy`，库中无 `str.npy` |
-| `surf.npy` / `iface.npy` | ❌ **缺失** | 同上；但 `struct_npz/` 覆盖 10,915/11,018，原料齐备 |
 | `adapter.pt` | ✅ 完成 | 331,648 参数，键/形状校验通过 |
 | R0 | ✅ 3 seeds | AUPRC 0.6175 / 0.6512 / 0.6330（seed 42/1234/2024） |
 | R1 | ✅ 3 seeds | AUPRC 0.6927 / 0.6904 / 0.6902 |
 | R2 | ⚠️ 部分 | seed42 = 0.6888；seed1234 只有 `cfg.json`，无 `metrics.json` |
-| R3–R7 | ⛔ 阻塞 | 需要 `str`（R3 起 struct=1），随后 R4 需 iface、R5 需 surf |
+| R3–R5 | ✅ **前置齐全，未训练** | `struct/iface/surf/str` 四通道均已入库，`check_data_all.py` 特征层 `PASS=45 WARN=4 FAIL=0` |
+| R6 | ✅ **前置齐全，未训练** | struct+iface+surf+text 齐备；`PPIModel` 前向冒烟通过（`text_mask=1`），把 text 置零后 logits 最大变化 **0.088**（证明通道真被消费，非装饰） |
+| R7 | ⛔ 阻塞 | 仅缺 `genome`；`genome_mask` 全 0 时 R7 与 R6 数值等价，`run_all.py` 的 P10 会拦下而不会静默喂零 |
 
-**恢复 R3+ 的最小路径**
+覆盖率：`surf/iface` 覆盖 **10,915 / 11,018** 个蛋白；`str`/`text` 覆盖 **11,018 / 11,018**。
 
-1. 用 `struct_npz/{pid}.npz`（含 `ca`、`plddt`、`seq`）＋ `sequences_primary.fasta` 生成 `surf_/iface_/plddt_{pid}.npy`
-   （顺带修 §7.7 的残基编码 bug；不依赖 Bio.PDB）。
-2. 用 ProstT5（`Rostlab/ProstT5`）生成 `str_{pid}.npy`；注意 8 GB 显存需 `bs=1~2`。
-3. 写一个**只打开目标通道**的增量 collect（勿用全量 `--collect`，见 §7.5），保留原 `meta.json`。
-4. `python prep/verify_store2.py` 验收 → `python check_data_all.py` 退出码 0 → `run_all.py ladder --levels R3 R4 R5`。
+**缺结构的 105 个蛋白（2026-10-23 定论）**：`prep/fetch_missing_struct.py` 对它们逐个试 AFDB
+`v6→v5→v4` **全部 404**，不是网络问题——抽查 `O15050`（Swiss-Prot，TPR/ankyrin 蛋白，2,925 aa）、
+`O60494`（Cubilin，3,623 aa）确实是正常条目，只是 AFDB 没为它们出模型；`A9Z1Z3` 已降级为
+Inactive。结论：**补不回来**，这 105 个的 `surf/iface` 只能留零；它们同时没有 `plddt`，
+`data.make_collate` 的 L2 质量门本来就会把这两路置零，因此不构成分布外噪声。
+
+**本次三通道收尾（2026-10-23）**
+
+1. ~~surf/iface 重算~~ ✅ `prep/surf_from_npz.py`：10,915 条 / 745 s / 0 失败，输出 `workdir/features/surf_fix/`
+2. ~~surf/iface 入库~~ ✅ `prep/collect_channels.py --channels surf iface`：`present=10915/11018`
+3. ~~str 提取~~ ✅ `prep/run_str_extract.py --bs 1`（RTX 4060、bf16、离线 HF 缓存）：11,018 条 / 2,474 s / **0 失败** / 4.45 条·s⁻¹
+4. ~~str 入库~~ ✅ `prep/collect_channels.py --channels str`：`present=11018/11018`、`maxabs=3.17`、0 NaN/Inf
+5. ~~text 提取~~ ✅ `prep/run_text_extract.py --bs 64`（`all-mpnet-base-v2`、384 token、fp32）：11,020 条 / 96 s / **0 跳过** / 63.5 条·s⁻¹；PCA(128) 仅在 4,286 个 train 蛋白上 fit，`evr=0.872`
+6. ~~text 入库~~ ✅ `prep/collect_channels.py --channels text`：`present=11018/11018`、`maxabs=0.4753`、0 NaN/Inf
+7. ~~105 个缺结构蛋白~~ ✅ 已查清不可补（见上方覆盖率段的说明），`_struct_failed.txt` 留档
+8. **genome**：仍缺，且**本机没有任何可用的基因组原料**。`features/extract_text_genome.py` 的
+   `glm2` 分支是 `NotImplementedError` 接入点，`precomputed` 分支需要外部给的
+   `{pid}.genome.npy`（256d）目录。要么补原料（Ensembl/UCSC 基因窗口 + gLM2 编码），
+   要么接受 R7 暂不训练——R6 已经可以跑，R7 只是 R6 的"加一个通道"版本。
 
 ---
 

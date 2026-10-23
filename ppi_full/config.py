@@ -15,12 +15,15 @@ class Paths:
 @dataclass
 class FeatureModels:
     esm2: str = "esm2_t33_650M_UR50D"          # fair-esm
-    prostt5: str = "athleted/prostt5"          # ← 用前核对 HF model card
-    glm2: str = "EvolutionaryScale/gLM2-350M"  # ← 用前核对
+    prostt5: str = "Rostlab/ProstT5"           # F2：实际 HF 仓库（原 "athleted/prostt5" 不存在）；本机缓存已有 10.75 GB 权重
+    # gLM2 官方权重在 tattabio 组织下（EvolutionaryScale/gLM2-350M 不存在，会 401）
+    glm2: str = "tattabio/gLM2_150M"  # ← 用前核对
     proteinclip_ckpt: str = ""                 # 可得时填本地路径
     openai_model: str = "text-embedding-3-large"
     st_local: str = "sentence-transformers/all-mpnet-base-v2"
-    afdb_url: str = "https://alphafold.ebi.ac.uk/files/AF-{pid}-F1-model_v4.cif"
+    # AFDB v4 已于 2025 年下线（实测 404），v6 在役；保留 v4 仅作最后回退
+    afdb_url: str = "https://alphafold.ebi.ac.uk/files/AF-{pid}-F1-model_v6.cif"
+    afdb_url_fallback: str = "https://alphafold.ebi.ac.uk/files/AF-{pid}-F1-model_v4.cif"
 
 @dataclass
 class Switches:

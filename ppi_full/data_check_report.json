@@ -1,5 +1,5 @@
 {
- "time": "20261022_152228",
+ "time": "20261023_152149",
  "root": "D:\\pythonprojects\\practice-github\\ppi_full",
  "items": [
   {
@@ -24,7 +24,7 @@
    "stage": "env",
    "name": "磁盘剩余",
    "status": "INFO",
-   "detail": "372 GiB"
+   "detail": "329 GiB"
   },
   {
    "stage": "data",
@@ -174,13 +174,13 @@
    "stage": "features",
    "name": "meta.n",
    "status": "WARN",
-   "detail": "n=11018, pid2idx=11020, has_text=11018, has_genome=11018（pid2idx 与 n 不一致，见下面的死键/越界判定）"
+   "detail": "n=11018, pid2idx=11020, has_text=11018/11018, has_genome=0/11018（pid2idx 与 n 不一致，见下面的死键/越界判定）"
   },
   {
    "stage": "features",
    "name": "磁盘占用",
    "status": "INFO",
-   "detail": "40.76 GiB"
+   "detail": "75.91 GiB"
   },
   {
    "stage": "features",
@@ -244,27 +244,75 @@
   },
   {
    "stage": "features",
-   "name": "seq 全库 NaN/Inf",
+   "name": "str.npy 形状",
    "status": "PASS",
-   "detail": "0 处"
+   "detail": "(11018, 1022, 1024)（期望 (11018, 1022, 1024)）"
   },
   {
    "stage": "features",
-   "name": "str.npy",
-   "status": "FAIL",
-   "detail": "缺失或损坏"
+   "name": "str 采样 NaN/Inf",
+   "status": "PASS",
+   "detail": "NaN=0 Inf=0"
   },
   {
    "stage": "features",
-   "name": "surf.npy",
-   "status": "FAIL",
-   "detail": "缺失或损坏"
+   "name": "str 非平凡性",
+   "status": "PASS",
+   "detail": "|max|=3.1094"
   },
   {
    "stage": "features",
-   "name": "iface.npy",
-   "status": "FAIL",
-   "detail": "缺失或损坏"
+   "name": "str padding=0（采样）",
+   "status": "PASS",
+   "detail": "0/512 行越界非零"
+  },
+  {
+   "stage": "features",
+   "name": "surf.npy 形状",
+   "status": "PASS",
+   "detail": "(11018, 1022, 80)（期望 (11018, 1022, 80)）"
+  },
+  {
+   "stage": "features",
+   "name": "surf 采样 NaN/Inf",
+   "status": "PASS",
+   "detail": "NaN=0 Inf=0"
+  },
+  {
+   "stage": "features",
+   "name": "surf 非平凡性",
+   "status": "PASS",
+   "detail": "|max|=247.6250"
+  },
+  {
+   "stage": "features",
+   "name": "surf padding=0（采样）",
+   "status": "PASS",
+   "detail": "0/512 行越界非零"
+  },
+  {
+   "stage": "features",
+   "name": "iface.npy 形状",
+   "status": "PASS",
+   "detail": "(11018, 1022)（期望 (11018, 1022)）"
+  },
+  {
+   "stage": "features",
+   "name": "iface 采样 NaN/Inf",
+   "status": "PASS",
+   "detail": "NaN=0 Inf=0"
+  },
+  {
+   "stage": "features",
+   "name": "iface 非平凡性",
+   "status": "PASS",
+   "detail": "|max|=0.8594"
+  },
+  {
+   "stage": "features",
+   "name": "iface padding=0（采样）",
+   "status": "PASS",
+   "detail": "0/512 行越界非零"
   },
   {
    "stage": "features",
@@ -286,12 +334,6 @@
   },
   {
    "stage": "features",
-   "name": "text 全库 NaN/Inf",
-   "status": "PASS",
-   "detail": "0 处"
-  },
-  {
-   "stage": "features",
    "name": "genome.npy 形状",
    "status": "PASS",
    "detail": "(11018, 256)（期望 (11018,256)）"
@@ -309,12 +351,6 @@
    "detail": "0/512 行不符（has=1 应非零 / has=0 应全零）"
   },
   {
-   "stage": "features",
-   "name": "genome 全库 NaN/Inf",
-   "status": "PASS",
-   "detail": "0 处"
-  },
-  {
    "stage": "ssl",
    "name": "adapter 参数量",
    "status": "PASS",
@@ -325,150 +361,6 @@
    "name": "adapter 键与形状",
    "status": "PASS",
    "detail": "异常键: 无"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed1234 metrics",
-   "status": "PASS",
-   "detail": "test auprc=0.6512"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed1234 labels 对齐",
-   "status": "PASS",
-   "detail": "n=52048, 与首 seed 一致=True"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed1234 参数指纹",
-   "status": "PASS",
-   "detail": "1045569（期望 1045569）"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed2024 metrics",
-   "status": "PASS",
-   "detail": "test auprc=0.6330"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed2024 labels 对齐",
-   "status": "PASS",
-   "detail": "n=52048, 与首 seed 一致=True"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed2024 参数指纹",
-   "status": "PASS",
-   "detail": "1045569（期望 1045569）"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed42 metrics",
-   "status": "PASS",
-   "detail": "test auprc=0.6175"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed42 labels 对齐",
-   "status": "PASS",
-   "detail": "n=52048, 与首 seed 一致=True"
-  },
-  {
-   "stage": "runs",
-   "name": "R0/seed42 参数指纹",
-   "status": "PASS",
-   "detail": "1045569（期望 1045569）"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed1234 metrics",
-   "status": "PASS",
-   "detail": "test auprc=0.6904"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed1234 labels 对齐",
-   "status": "PASS",
-   "detail": "n=52048, 与首 seed 一致=True"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed1234 参数指纹",
-   "status": "PASS",
-   "detail": "3823875（期望 3823875）"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed2024 metrics",
-   "status": "PASS",
-   "detail": "test auprc=0.6902"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed2024 labels 对齐",
-   "status": "PASS",
-   "detail": "n=52048, 与首 seed 一致=True"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed2024 参数指纹",
-   "status": "PASS",
-   "detail": "3823875（期望 3823875）"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed42 metrics",
-   "status": "PASS",
-   "detail": "test auprc=0.6927"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed42 labels 对齐",
-   "status": "PASS",
-   "detail": "n=52048, 与首 seed 一致=True"
-  },
-  {
-   "stage": "runs",
-   "name": "R1/seed42 参数指纹",
-   "status": "PASS",
-   "detail": "3823875（期望 3823875）"
-  },
-  {
-   "stage": "runs",
-   "name": "R2/seed1234 产物",
-   "status": "FAIL",
-   "detail": "缺 metrics.json"
-  },
-  {
-   "stage": "runs",
-   "name": "R2/seed1234 产物",
-   "status": "FAIL",
-   "detail": "缺 predictions.npz"
-  },
-  {
-   "stage": "runs",
-   "name": "R2/seed1234 产物",
-   "status": "FAIL",
-   "detail": "缺 ckpt.pt"
-  },
-  {
-   "stage": "runs",
-   "name": "R2/seed42 metrics",
-   "status": "PASS",
-   "detail": "test auprc=0.6888"
-  },
-  {
-   "stage": "runs",
-   "name": "R2/seed42 labels 对齐",
-   "status": "PASS",
-   "detail": "n=52048, 与首 seed 一致=True"
-  },
-  {
-   "stage": "runs",
-   "name": "R2/seed42 参数指纹",
-   "status": "PASS",
-   "detail": "4155523（期望 4155523）"
   }
  ]
 }

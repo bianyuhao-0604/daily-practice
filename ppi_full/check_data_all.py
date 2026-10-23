@@ -124,7 +124,7 @@ def check_features(root, sample, full_nan):
     meta = json.load(open(mp))
     n = int(meta["n"]); pid2idx = meta["pid2idx"]; ht = meta["has_text"]; hg = meta["has_genome"]
     add(S, "meta.n", "PASS" if (len(pid2idx) == n and len(ht) == n and len(hg) == n) else "WARN",
-        f"n={n}, pid2idx={len(pid2idx)}, has_text={len(ht)}, has_genome={len(hg)}"
+        f"n={n}, pid2idx={len(pid2idx)}, has_text={sum(1 for x in ht if x)}/{n}, has_genome={sum(1 for x in hg if x)}/{n}"
         + ("（pid2idx 与 n 不一致，见下面的死键/越界判定）" if len(pid2idx) != n else ""))
     bad_range = {k: int(v) for k, v in pid2idx.items() if not (0 <= int(v) < n)}
     dup_all = len(pid2idx) - len({int(v) for v in pid2idx.values()})

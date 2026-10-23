@@ -6,12 +6,28 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 warnings.filterwarnings("ignore")
 from config import MAX_LEN, Paths, FeatureModels
-from Bio.PDB import MMCIFParser
 
+# F1：Bio.PDB 只在解析 CIF 时用，改为延迟导入（parse_cif 内部），
+# 使 descriptors()/iface_heuristic() 可在无 biopython 的环境下被复用（如 prep/surf_from_npz.py）。
 HYDRO = set("AVILMFWC")
 ARO = set("FWY")
 POS = set("KRH")
 NEG = set("DE")
+
+# F1：三字母 → 一字母。Bio.PDB 的 get_resname() 返回 "ALA" 这类三字母码，
+# 而上面的类别集合是一字母码；早期直接透传导致 grp 恒为 2，
+# 使 80 维中 19–27 / 28–32 / 63–64 共 16 维恒为常数。
+THREE2ONE = {
+    "ALA": "A", "ARG": "R", "ASN": "N", "ASP": "D", "CYS": "C", "GLN": "Q",
+    "GLU": "E", "GLY": "G", "HIS": "H", "ILE": "I", "LEU": "L", "LYS": "K",
+    "MET": "M", "PHE": "F", "PRO": "P", "SER": "S", "THR": "T", "TRP": "W",
+    "TYR": "Y", "VAL": "V", "MSE": "M", "SEC": "U", "PYL": "O",
+}
+
+
+def to_one_letter(resname):
+    """三字母残基名 → 一字母；未知返回 X。"""
+    return THREE2ONE.get(str(resname).upper(), "X")
 
 def download_afdb(pid, out_dir, url_tpl):
     os.makedirs(out_dir, exist_ok=True)
@@ -21,6 +37,7 @@ def download_afdb(pid, out_dir, url_tpl):
     return p
 
 def parse_cif(path, max_res=MAX_LEN):
+    from Bio.PDB import MMCIFParser                    # F1：延迟导入，避免硬依赖 biopython
     s = MMCIFParser(QUIET=True).get_structure("s", path)[0]
     chain = next(iter(s))
     coords, res, plddt = [], [], []
@@ -28,7 +45,7 @@ def parse_cif(path, max_res=MAX_LEN):
         if "CA" not in r:
             continue
         coords.append(r["CA"].coord.tolist())
-        res.append(r.get_resname())
+        res.append(to_one_letter(r.get_resname()))    # F1：三字母 → 一字母（原先直接透传，特征恒常数）
         plddt.append(r["CA"].bfactor)
         if len(coords) >= max_res:          # titin(34350aa) 提前截断：下游本来就只用前 1022
             break

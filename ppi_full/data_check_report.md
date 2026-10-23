@@ -1,11 +1,11 @@
-# 数据体检 20261022_152228
+# 数据体检 20261023_152149
 
-PASS=57 WARN=4 FAIL=6
+PASS=45 WARN=4 FAIL=0
 
 - [INFO] env/torch: 2.6.0+cu124
 - [INFO] env/GPU: NVIDIA GeForce RTX 4060 Laptop GPU, 8.0 GiB, cc 8.9
 - [INFO] env/bf16 支持: True
-- [INFO] env/磁盘剩余: 372 GiB
+- [INFO] env/磁盘剩余: 329 GiB
 - [INFO] data/train.csv 行数: 163192 行, 列=['pid_a', 'pid_b', 'label']
 - [PASS] data/train NaN: NaN=0
 - [PASS] data/train 标签域: 取值=[0, 1]
@@ -30,8 +30,8 @@ PASS=57 WARN=4 FAIL=6
 - [PASS] data/配对重叠 train&val: 0 对
 - [PASS] data/配对重叠 train&test: 0 对
 - [PASS] data/配对重叠 val&test: 0 对
-- [WARN] features/meta.n: n=11018, pid2idx=11020, has_text=11018, has_genome=11018（pid2idx 与 n 不一致，见下面的死键/越界判定）
-- [INFO] features/磁盘占用: 40.76 GiB
+- [WARN] features/meta.n: n=11018, pid2idx=11020, has_text=11018/11018, has_genome=0/11018（pid2idx 与 n 不一致，见下面的死键/越界判定）
+- [INFO] features/磁盘占用: 75.91 GiB
 - [PASS] features/划分 pid 全覆盖: 274500 行中缺特征 0 行
 - [PASS] features/被引用索引重复: 全库重复索引 2 处，均为 uniprot_primary_map.txt 背书的构建期别名（同 UniProt 条目主/次登录号，同序列，功能无损）: idx 10657 ← ['Q8IXS6', 'Q9Y2D5']
 - [PASS] features/被引用索引值域: 11019 个被引用蛋白的索引全部在 [0,11018)
@@ -42,41 +42,23 @@ PASS=57 WARN=4 FAIL=6
 - [PASS] features/seq 采样 NaN/Inf: NaN=0 Inf=0
 - [PASS] features/seq 非平凡性: |max|=9.4375
 - [PASS] features/seq padding=0（采样）: 0/512 行越界非零
-- [PASS] features/seq 全库 NaN/Inf: 0 处
-- [FAIL] features/str.npy: 缺失或损坏
-- [FAIL] features/surf.npy: 缺失或损坏
-- [FAIL] features/iface.npy: 缺失或损坏
+- [PASS] features/str.npy 形状: (11018, 1022, 1024)（期望 (11018, 1022, 1024)）
+- [PASS] features/str 采样 NaN/Inf: NaN=0 Inf=0
+- [PASS] features/str 非平凡性: |max|=3.1094
+- [PASS] features/str padding=0（采样）: 0/512 行越界非零
+- [PASS] features/surf.npy 形状: (11018, 1022, 80)（期望 (11018, 1022, 80)）
+- [PASS] features/surf 采样 NaN/Inf: NaN=0 Inf=0
+- [PASS] features/surf 非平凡性: |max|=247.6250
+- [PASS] features/surf padding=0（采样）: 0/512 行越界非零
+- [PASS] features/iface.npy 形状: (11018, 1022)（期望 (11018, 1022)）
+- [PASS] features/iface 采样 NaN/Inf: NaN=0 Inf=0
+- [PASS] features/iface 非平凡性: |max|=0.8594
+- [PASS] features/iface padding=0（采样）: 0/512 行越界非零
 - [PASS] features/text.npy 形状: (11018, 128)（期望 (11018,128)）
 - [WARN] features/text.npy dtype: float16（建议 float32）
 - [PASS] features/text 与 has 标记一致（采样）: 0/512 行不符（has=1 应非零 / has=0 应全零）
-- [PASS] features/text 全库 NaN/Inf: 0 处
 - [PASS] features/genome.npy 形状: (11018, 256)（期望 (11018,256)）
 - [WARN] features/genome.npy dtype: float16（建议 float32）
 - [PASS] features/genome 与 has 标记一致（采样）: 0/512 行不符（has=1 应非零 / has=0 应全零）
-- [PASS] features/genome 全库 NaN/Inf: 0 处
 - [PASS] ssl/adapter 参数量: 331648（审计指纹 331,648）
 - [PASS] ssl/adapter 键与形状: 异常键: 无
-- [PASS] runs/R0/seed1234 metrics: test auprc=0.6512
-- [PASS] runs/R0/seed1234 labels 对齐: n=52048, 与首 seed 一致=True
-- [PASS] runs/R0/seed1234 参数指纹: 1045569（期望 1045569）
-- [PASS] runs/R0/seed2024 metrics: test auprc=0.6330
-- [PASS] runs/R0/seed2024 labels 对齐: n=52048, 与首 seed 一致=True
-- [PASS] runs/R0/seed2024 参数指纹: 1045569（期望 1045569）
-- [PASS] runs/R0/seed42 metrics: test auprc=0.6175
-- [PASS] runs/R0/seed42 labels 对齐: n=52048, 与首 seed 一致=True
-- [PASS] runs/R0/seed42 参数指纹: 1045569（期望 1045569）
-- [PASS] runs/R1/seed1234 metrics: test auprc=0.6904
-- [PASS] runs/R1/seed1234 labels 对齐: n=52048, 与首 seed 一致=True
-- [PASS] runs/R1/seed1234 参数指纹: 3823875（期望 3823875）
-- [PASS] runs/R1/seed2024 metrics: test auprc=0.6902
-- [PASS] runs/R1/seed2024 labels 对齐: n=52048, 与首 seed 一致=True
-- [PASS] runs/R1/seed2024 参数指纹: 3823875（期望 3823875）
-- [PASS] runs/R1/seed42 metrics: test auprc=0.6927
-- [PASS] runs/R1/seed42 labels 对齐: n=52048, 与首 seed 一致=True
-- [PASS] runs/R1/seed42 参数指纹: 3823875（期望 3823875）
-- [FAIL] runs/R2/seed1234 产物: 缺 metrics.json
-- [FAIL] runs/R2/seed1234 产物: 缺 predictions.npz
-- [FAIL] runs/R2/seed1234 产物: 缺 ckpt.pt
-- [PASS] runs/R2/seed42 metrics: test auprc=0.6888
-- [PASS] runs/R2/seed42 labels 对齐: n=52048, 与首 seed 一致=True
-- [PASS] runs/R2/seed42 参数指纹: 4155523（期望 4155523）

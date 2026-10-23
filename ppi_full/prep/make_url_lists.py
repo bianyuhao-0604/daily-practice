@@ -1,5 +1,11 @@
-"""从 pids.txt 生成 AFDB cif 与 UniProt 注释文本 URL 清单。"""
+"""从 pids.txt 生成 AFDB cif 与 UniProt 注释文本 URL 清单。
+
+注意：AFDB 官方 v4 已于 2025 年下线（实测对任意 pid 都 404），现役是 v6。
+"""
 import argparse, os
+
+AFDB_TMPL = "https://alphafold.ebi.ac.uk/files/AF-{pid}-F1-model_v6.cif"
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -10,7 +16,7 @@ def main():
     pids = [l.strip() for l in open(a.pids) if l.strip()]
     with open(os.path.join(a.outdir, "afdb_urls.txt"), "w") as f:
         for p in pids:
-            f.write(f"https://alphafold.ebi.ac.uk/files/AF-{p}-F1-model_v4.cif\n")
+            f.write(AFDB_TMPL.format(pid=p) + "\n")
     with open(os.path.join(a.outdir, "uniprot_urls.txt"), "w") as f:
         for p in pids:
             f.write(f"https://rest.uniprot.org/uniprotkb/{p}.txt\n")
