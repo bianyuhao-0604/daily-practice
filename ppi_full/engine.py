@@ -213,6 +213,9 @@ def train_one_run(level, seed, mcfg, tcfg, paths, tag=None, adapter_ckpt=None):
 def mc_dropout_eval(paths, tag, seed, T=10):
     """MC-Dropout：仅激活 Dropout 模块；输出 1-D（N1）。"""
     run_dir = os.path.join(paths.out_dir, tag, f"seed{seed}")
+    for name in ("cfg.json", "ckpt.pt", "predictions.npz"):   # D4：缺产物就别往下走
+        if not os.path.exists(os.path.join(run_dir, name)):
+            raise FileNotFoundError(f"{tag}/seed{seed} 缺 {name}，无法做 MC-Dropout")
     cfg = json.load(open(os.path.join(run_dir, "cfg.json")))
     mcfg = model_cfg_from_dict(cfg["model"])
     set_seed(seed)
@@ -226,14 +229,15 @@ def mc_dropout_eval(paths, tag, seed, T=10):
         if isinstance(mod, nn.Dropout):
             mod.train()
     outs = []
-    for _ in range(T):
-        ps = []
-        for batch in te_loader:
-            batch = to_dev(batch, device)
-            with torch.autocast("cuda", torch.bfloat16, enabled=device == "cuda"):
-                logits = model(batch)["logits"].float()
-            ps.append(torch.sigmoid(logits).squeeze(-1).cpu().numpy())   # N1
-        outs.append(np.concatenate(ps))
+    with torch.no_grad():                                 # 推理无需建图：否则 .numpy() 直接报错
+        for _ in range(T):
+            ps = []
+            for batch in te_loader:
+                batch = to_dev(batch, device)
+                with torch.autocast("cuda", torch.bfloat16, enabled=device == "cuda"):
+                    logits = model(batch)["logits"].float()
+                ps.append(torch.sigmoid(logits).squeeze(-1).cpu().numpy())   # N1
+            outs.append(np.concatenate(ps))
     P = np.stack(outs)                                    # [T,N]
     mean, var = P.mean(0), P.var(0)
     y = np.load(os.path.join(run_dir, "predictions.npz"))["labels"]

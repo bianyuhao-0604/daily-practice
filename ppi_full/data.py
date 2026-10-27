@@ -59,8 +59,17 @@ class FeatureStore:
         self.n = int(meta["n"])
         self.has_text = np.array(meta["has_text"], bool)
         self.has_genome = np.array(meta["has_genome"], bool)
+
+        def _mask(key, fallback):
+            v = meta.get(key)
+            return np.array(v, bool) if v is not None else fallback()
+
         self.lengths = np.load(os.path.join(feat_dir, "lengths.npy"), mmap_mode="r")
         self.plddt = np.load(os.path.join(feat_dir, "plddt.npy"), mmap_mode="r")
+        # 结构类通道的蛋白级可用性：优先用 meta 里的权威掩码；旧 meta 无该字段时
+        # 按“plddt 全 100 哨兵”回退（store.py 缺失即写 100），保证不会把全零 surf/iface 当真值。
+        self.has_surf = _mask("has_surf", lambda: np.asarray(self.plddt[:, 0]) < 100.0)
+        self.has_iface = _mask("has_iface", lambda: self.has_surf)
 
         def _mm(name, shape):
             p = os.path.join(feat_dir, name + ".npy")
@@ -144,6 +153,13 @@ def make_collate(store, _raw=False):
             d["len"] = np.minimum(np.asarray(Ls), Lmax).astype(int)
             d["iface_raw"] = iface
             d["plddt"] = plddt
+            # 蛋白级结构可用性：整蛋白无 AFDB 结构 → plddt 全 100 哨兵、surf/iface 全零，
+            # 这里显式给出 0/1 掩码，避免模型把“缺失”当成“真实低信号”再经 surf_proj 偏置放大。
+            sm = np.ones(B, np.float32)
+            im = np.ones(B, np.float32)
+            for jj, ix in enumerate(idxs):
+                sm[jj] = 1.0 if store.has_surf[ix] else 0.0
+                im[jj] = 1.0 if store.has_iface[ix] else 0.0
             # 蛋白级特征：per-side 独立收集
             tx = np.zeros((B, 128), np.float32)
             ge = np.zeros((B, 256), np.float32)
@@ -160,13 +176,16 @@ def make_collate(store, _raw=False):
             d["genome"] = ge
             d["text_mask"] = tm
             d["genome_mask"] = gm
+            d["surf_mask"] = sm
+            d["iface_mask"] = im
             return d
 
         A, Bd = side(ias, La), side(ibs, Lb)
         for d in (A, Bd):                                # L2：pLDDT<70 → surf/iface 置零（无参数）
-            keep70 = (d["plddt"] >= 70.0).astype(np.float32)
+            # 整蛋白缺结构（mask=0）单独清零：哨兵 100 会骗过 keep70，必须叠加蛋白级掩码
+            keep70 = (d["plddt"] >= 70.0).astype(np.float32) * d["surf_mask"][:, None]
             d["surf"] = d["surf"] * keep70[..., None]
-            d["iface"] = d["iface_raw"] * keep70
+            d["iface"] = d["iface_raw"] * keep70 * d["iface_mask"][:, None]
 
         def pack(d):
             pad = np.arange(Lmax)[None, :] >= d["len"][:, None]
@@ -180,6 +199,8 @@ def make_collate(store, _raw=False):
                 "genome": torch.from_numpy(np.ascontiguousarray(d["genome"])),
                 "text_mask": torch.from_numpy(d["text_mask"]),
                 "genome_mask": torch.from_numpy(d["genome_mask"]),
+                "surf_mask": torch.from_numpy(d["surf_mask"]),
+                "iface_mask": torch.from_numpy(d["iface_mask"]),
             }
 
         return {"A": pack(A), "B": pack(Bd), "y": torch.tensor(ys, dtype=torch.float32)}

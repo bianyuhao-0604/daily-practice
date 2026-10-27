@@ -1,10 +1,9 @@
-# 数据体检 20261023_152149
+# 数据体检 20261023_214828
 
-PASS=45 WARN=4 FAIL=0
+PASS=73 WARN=5 FAIL=3
 
-- [INFO] env/torch: 2.6.0+cu124
-- [INFO] env/GPU: NVIDIA GeForce RTX 4060 Laptop GPU, 8.0 GiB, cc 8.9
-- [INFO] env/bf16 支持: True
+- [INFO] env/torch: 2.12.1+cpu
+- [WARN] env/CUDA: 不可用（训练需 GPU）
 - [INFO] env/磁盘剩余: 329 GiB
 - [INFO] data/train.csv 行数: 163192 行, 列=['pid_a', 'pid_b', 'label']
 - [PASS] data/train NaN: NaN=0
@@ -30,8 +29,8 @@ PASS=45 WARN=4 FAIL=0
 - [PASS] data/配对重叠 train&val: 0 对
 - [PASS] data/配对重叠 train&test: 0 对
 - [PASS] data/配对重叠 val&test: 0 对
-- [WARN] features/meta.n: n=11018, pid2idx=11020, has_text=11018/11018, has_genome=0/11018（pid2idx 与 n 不一致，见下面的死键/越界判定）
-- [INFO] features/磁盘占用: 75.91 GiB
+- [WARN] features/meta.n: n=11018, pid2idx=11020, has_text=11018/11018, has_genome=10832/11018, has_surf=10915/11018, has_iface=10915/11018（pid2idx 与 n 不一致，见下面的死键/越界判定）
+- [INFO] features/磁盘占用: 75.92 GiB
 - [PASS] features/划分 pid 全覆盖: 274500 行中缺特征 0 行
 - [PASS] features/被引用索引重复: 全库重复索引 2 处，均为 uniprot_primary_map.txt 背书的构建期别名（同 UniProt 条目主/次登录号，同序列，功能无损）: idx 10657 ← ['Q8IXS6', 'Q9Y2D5']
 - [PASS] features/被引用索引值域: 11019 个被引用蛋白的索引全部在 [0,11018)
@@ -60,5 +59,39 @@ PASS=45 WARN=4 FAIL=0
 - [PASS] features/genome.npy 形状: (11018, 256)（期望 (11018,256)）
 - [WARN] features/genome.npy dtype: float16（建议 float32）
 - [PASS] features/genome 与 has 标记一致（采样）: 0/512 行不符（has=1 应非零 / has=0 应全零）
+- [PASS] features/surf 掩码与 plddt 哨兵一致: 0/11018 行不符（has_surf 应为 False 的行 = plddt 首残基 100 的行）
+- [PASS] features/surf 与 has_surf 一致（采样）: 0/512 行不符（has=1 应非零 / has=0 应全零）
+- [PASS] features/iface 掩码与 plddt 哨兵一致: 0/11018 行不符（has_iface 应为 False 的行 = plddt 首残基 100 的行）
+- [PASS] features/iface 与 has_iface 一致（采样）: 0/512 行不符（has=1 应非零 / has=0 应全零）
 - [PASS] ssl/adapter 参数量: 331648（审计指纹 331,648）
 - [PASS] ssl/adapter 键与形状: 异常键: 无
+- [PASS] runs/R0/seed1234 metrics: test auprc=0.6512
+- [PASS] runs/R0/seed1234 labels 对齐: n=52048, 与首 seed 一致=True
+- [PASS] runs/R0/seed1234 参数指纹: 1045569（期望 1045569）
+- [PASS] runs/R0/seed2024 metrics: test auprc=0.6330
+- [PASS] runs/R0/seed2024 labels 对齐: n=52048, 与首 seed 一致=True
+- [PASS] runs/R0/seed2024 参数指纹: 1045569（期望 1045569）
+- [PASS] runs/R0/seed42 metrics: test auprc=0.6175
+- [PASS] runs/R0/seed42 labels 对齐: n=52048, 与首 seed 一致=True
+- [PASS] runs/R0/seed42 参数指纹: 1045569（期望 1045569）
+- [PASS] runs/R1/seed1234 metrics: test auprc=0.6904
+- [PASS] runs/R1/seed1234 labels 对齐: n=52048, 与首 seed 一致=True
+- [PASS] runs/R1/seed1234 参数指纹: 3823875（期望 3823875）
+- [PASS] runs/R1/seed2024 metrics: test auprc=0.6902
+- [PASS] runs/R1/seed2024 labels 对齐: n=52048, 与首 seed 一致=True
+- [PASS] runs/R1/seed2024 参数指纹: 3823875（期望 3823875）
+- [PASS] runs/R1/seed42 metrics: test auprc=0.6927
+- [PASS] runs/R1/seed42 labels 对齐: n=52048, 与首 seed 一致=True
+- [PASS] runs/R1/seed42 参数指纹: 3823875（期望 3823875）
+- [PASS] runs/R2/seed1234 metrics: test auprc=0.6944
+- [PASS] runs/R2/seed1234 labels 对齐: n=52048, 与首 seed 一致=True
+- [PASS] runs/R2/seed1234 参数指纹: 4155523（期望 4155523）
+- [FAIL] runs/R2/seed2024 产物: 缺 metrics.json
+- [FAIL] runs/R2/seed2024 产物: 缺 predictions.npz
+- [FAIL] runs/R2/seed2024 产物: 缺 ckpt.pt
+- [PASS] runs/R2/seed42 metrics: test auprc=0.6888
+- [PASS] runs/R2/seed42 labels 对齐: n=52048, 与首 seed 一致=True
+- [PASS] runs/R2/seed42 参数指纹: 4155523（期望 4155523）
+- [INFO] runs/_smoke_mask 目录: 临时/非标准产物目录，跳过深度检查
+
+> 注：`data_check_report.json` 为 18:42 旧版（沙箱对这两个文件有写保护，本次无法覆盖）；最新结果以本文件为准。

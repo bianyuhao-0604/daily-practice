@@ -114,13 +114,17 @@ ABLATIONS = {
     "L5-no-asym":             dict(l5_no_asym=True),
     "L5-no-siface":           dict(l5_siface=False),
     "L5-plain-mlp":           dict(l5_plain_mlp=True),
-    "L5-no-mixup":            dict(train__mixup_prob=0.0),
+    "L5-mixup":               dict(train__mixup_prob=0.25),
     "L5-no-ls":               dict(train__label_smooth=0.0),
     "L5-no-rdrop":            dict(train__rdrop_alpha=0.0),
     "L5-concat-asym":         dict(l5_concat_asym=True),
     "No-Seq":                 dict(zero_seq=True),
     "No-SSL":                 dict(use_ssl=False),
 }
+# 注：原 "L5-no-mixup"(train__mixup_prob=0.0) 与 R7 默认配方完全重合（TrainCfg.mixup_prob 默认
+# 就是 0.0），是空操作。mixup 在本项目里是搜索维度而非默认配方项，故改为“开 mixup”正向消融：
+# 与 R7（mixup 关）对比即可测出增益。若 best_hyperparams 已把 mixup 调成 >0，则该行会被
+# run_all.cmd_ablation 的空操作守卫拦下，此时应改用“关 mixup”作为对比行。
 
 def build_model_cfg(level, overrides=None):
     spec = R_LEVELS[level]

@@ -1,24 +1,18 @@
 {
- "time": "20261023_152149",
+ "time": "20261023_184230",
  "root": "D:\\pythonprojects\\practice-github\\ppi_full",
  "items": [
   {
    "stage": "env",
    "name": "torch",
    "status": "INFO",
-   "detail": "2.6.0+cu124"
+   "detail": "2.12.1+cpu"
   },
   {
    "stage": "env",
-   "name": "GPU",
-   "status": "INFO",
-   "detail": "NVIDIA GeForce RTX 4060 Laptop GPU, 8.0 GiB, cc 8.9"
-  },
-  {
-   "stage": "env",
-   "name": "bf16 支持",
-   "status": "INFO",
-   "detail": "True"
+   "name": "CUDA",
+   "status": "WARN",
+   "detail": "不可用（训练需 GPU）"
   },
   {
    "stage": "env",
@@ -174,13 +168,13 @@
    "stage": "features",
    "name": "meta.n",
    "status": "WARN",
-   "detail": "n=11018, pid2idx=11020, has_text=11018/11018, has_genome=0/11018（pid2idx 与 n 不一致，见下面的死键/越界判定）"
+   "detail": "n=11018, pid2idx=11020, has_text=11018/11018, has_genome=10832/11018, has_surf=10915/11018, has_iface=10915/11018（pid2idx 与 n 不一致，见下面的死键/越界判定）"
   },
   {
    "stage": "features",
    "name": "磁盘占用",
    "status": "INFO",
-   "detail": "75.91 GiB"
+   "detail": "75.92 GiB"
   },
   {
    "stage": "features",
@@ -347,6 +341,30 @@
   {
    "stage": "features",
    "name": "genome 与 has 标记一致（采样）",
+   "status": "PASS",
+   "detail": "0/512 行不符（has=1 应非零 / has=0 应全零）"
+  },
+  {
+   "stage": "features",
+   "name": "surf 掩码与 plddt 哨兵一致",
+   "status": "PASS",
+   "detail": "0/11018 行不符（has_surf 应为 False 的行 = plddt 首残基 100 的行）"
+  },
+  {
+   "stage": "features",
+   "name": "surf 与 has_surf 一致（采样）",
+   "status": "PASS",
+   "detail": "0/512 行不符（has=1 应非零 / has=0 应全零）"
+  },
+  {
+   "stage": "features",
+   "name": "iface 掩码与 plddt 哨兵一致",
+   "status": "PASS",
+   "detail": "0/11018 行不符（has_iface 应为 False 的行 = plddt 首残基 100 的行）"
+  },
+  {
+   "stage": "features",
+   "name": "iface 与 has_iface 一致（采样）",
    "status": "PASS",
    "detail": "0/512 行不符（has=1 应非零 / has=0 应全零）"
   },

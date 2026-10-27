@@ -7,6 +7,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 from config import ModelCfg
 
+
+def _pmask(p, key, ndim=2):
+    """蛋白级可用性掩码 → [B,1]（ndim=3 时 [B,1,1]）；旧 batch/旧 ckpt 无该键时返回 1.0。"""
+    m = p.get(key)
+    if m is None:
+        return 1.0
+    return m.reshape(m.shape[0], *([1] * (ndim - 1)))
+
+
 class BiasedAttention(nn.Module):
     def __init__(self, d, n_heads, w_drop=0.0):
         super().__init__()
@@ -106,14 +115,19 @@ class L4Fusion(nn.Module):
                                         nn.Dropout(cfg.dropout), nn.Linear(2 * d, d))
 
     def _embed(self, p):                                  # Step 4.2 表面门控 + 4.3 α 融合
+        # 通道开关(sw.surf) 与 门控开关(surface_gate) 解耦：关 gate 只是把 sigmoid 权重拿掉，
+        # surf 加法项保留，否则 L4-no-surface-gate 退化成“整条 surf 通道被移除”（= R4 口径）。
+        surf_term = None
+        if self.cfg.sw.surf:
+            surf_term = torch.tanh(self.surf_proj(p["surf"])) * _pmask(p, "surf_mask", 3)
+            if self.cfg.surface_gate:
+                surf_term = surf_term * torch.sigmoid(self.surf_gate(p["surf"]))
         if self.cfg.seq_proj_pos == "late":
             u = self.seq_proj(p["seq"])
-            if self.cfg.sw.surf and self.cfg.surface_gate:
-                u = u + torch.tanh(self.surf_proj(p["surf"])) * torch.sigmoid(self.surf_gate(p["surf"]))
+            if surf_term is not None:
+                u = u + surf_term
         else:
-            h = p["seq"]
-            if self.cfg.sw.surf and self.cfg.surface_gate:
-                h = h + torch.tanh(self.surf_proj(p["surf"])) * torch.sigmoid(self.surf_gate(p["surf"]))
+            h = p["seq"] + surf_term if surf_term is not None else p["seq"]
             u = self.seq_proj(h)
         if self.cfg.zero_seq:
             u = torch.zeros_like(u)
@@ -129,7 +143,8 @@ class L4Fusion(nn.Module):
         B = u_src.shape[0]
         iface_t, bias = None, None
         if self.cfg.sw.iface:
-            iface_t = tgt["iface"] * (tgt["iface"] > self.cfg.iface_tau).float()   # τ 硬阈值
+            iface_t = tgt["iface"] * (tgt["iface"] > self.cfg.iface_tau).float() \
+                * _pmask(tgt, "iface_mask")   # τ 硬阈值 + 整蛋白缺结构掩码
             if self.cfg.iface_bias:
                 bias = self.beta * iface_t[:, None, :]    # [B,1,Lk]
         ctx, w = self.cross(u_src, u_tgt, src["pad"], tgt["pad"], bias=bias, need_w=True)

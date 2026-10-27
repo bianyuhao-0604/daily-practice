@@ -123,8 +123,11 @@ def check_features(root, sample, full_nan):
         return None
     meta = json.load(open(mp))
     n = int(meta["n"]); pid2idx = meta["pid2idx"]; ht = meta["has_text"]; hg = meta["has_genome"]
+    hs = meta.get("has_surf"); hi = meta.get("has_iface")
     add(S, "meta.n", "PASS" if (len(pid2idx) == n and len(ht) == n and len(hg) == n) else "WARN",
         f"n={n}, pid2idx={len(pid2idx)}, has_text={sum(1 for x in ht if x)}/{n}, has_genome={sum(1 for x in hg if x)}/{n}"
+        + (f", has_surf={sum(1 for x in hs if x)}/{n}" if hs is not None else ", has_surf=缺失")
+        + (f", has_iface={sum(1 for x in hi if x)}/{n}" if hi is not None else ", has_iface=缺失")
         + ("（pid2idx 与 n 不一致，见下面的死键/越界判定）" if len(pid2idx) != n else ""))
     bad_range = {k: int(v) for k, v in pid2idx.items() if not (0 <= int(v) < n)}
     dup_all = len(pid2idx) - len({int(v) for v in pid2idx.values()})
@@ -279,6 +282,32 @@ def check_features(root, sample, full_nan):
                 blk = np.asarray(arr[s:s + 512], np.float32)
                 nbad += int(np.isnan(blk).sum()) + int(np.isinf(blk).sum())
             add(S, f"{ch} 全库 NaN/Inf", "PASS" if nbad == 0 else "FAIL", f"{nbad} 处")
+
+    # 结构类蛋白级掩码：surf/iface 全零行必须恰好等于 has_surf/has_iface 为 False 的行，
+    # 且与 plddt “全 100 哨兵”一致 —— data.py 的 surf_mask/iface_mask 就取自这套标记。
+    pld = load_mmap(os.path.join(fdir, "plddt.npy"))
+    for ch, mk in (("surf", "has_surf"), ("iface", "has_iface")):
+        arr = load_mmap(os.path.join(fdir, ch + ".npy"))
+        if arr is None or pld is None:
+            continue
+        has = meta.get(mk)
+        if has is None:
+            add(S, f"{ch} 蛋白级掩码", "WARN", f"meta 缺 {mk}，data.py 回退到 plddt 哨兵判定")
+            continue
+        has = np.array(has, bool)
+        sentinel = np.asarray(pld[:, 0]) >= 100.0          # True = 无结构（store.py 写 100 占位）
+        dm = int((has != ~sentinel).sum())                # 不符 = has 与“非哨兵”不一致
+        add(S, f"{ch} 掩码与 plddt 哨兵一致", "PASS" if dm == 0 else "FAIL",
+            f"{dm}/{n} 行不符（{mk} 应为 False 的行 = plddt 首残基 100 的行）")
+        mism = 0
+        for i in idx:
+            Li = max(1, int(L[i]))
+            row = np.asarray(arr[i, :Li], np.float32)
+            nz = float(np.abs(row).max()) if row.size else 0.0
+            if bool(has[i]) != (nz > 1e-6):
+                mism += 1
+        add(S, f"{ch} 与 {mk} 一致（采样）", "PASS" if mism == 0 else "FAIL",
+            f"{mism}/{len(idx)} 行不符（has=1 应非零 / has=0 应全零）")
     return dict(n=n, pid2idx=pid2idx)
 
 
@@ -306,6 +335,19 @@ def check_adapter(root):
     add(S, "adapter 键与形状", "PASS" if not bad else "FAIL", f"异常键: {bad or '无'}")
 
 
+def _ckpt_numel(obj, depth=0):
+    """统计 ckpt 张量元素数；容忍 {'model': state_dict, ...} 这类嵌套结构。"""
+    try:
+        import torch
+    except Exception:
+        return 0
+    if torch.is_tensor(obj):
+        return int(obj.numel())
+    if isinstance(obj, dict) and depth < 2:
+        return sum(_ckpt_numel(v, depth + 1) for v in obj.values())
+    return 0
+
+
 def check_runs(root):
     S = "runs"
     rdir = os.path.join(root, "workdir", "runs")
@@ -320,6 +362,9 @@ def check_runs(root):
     for tag in sorted(os.listdir(rdir)):
         tdir = os.path.join(rdir, tag)
         if not os.path.isdir(tdir):
+            continue
+        if tag.startswith("_"):                            # 临时冒烟产物：不按正式 run 要求
+            add(S, f"{tag} 目录", "INFO", "临时/非标准产物目录，跳过深度检查")
             continue
         labels_ref = None
         for sd_ in sorted(glob.glob(os.path.join(tdir, "seed*"))):
@@ -349,9 +394,11 @@ def check_runs(root):
                     st = torch.load(ck, map_location="cpu", weights_only=True)
                 except TypeError:
                     st = torch.load(ck, map_location="cpu")
-                num = sum(v.numel() for v in st.values())
+                num = _ckpt_numel(st)
                 exp = EXP_PARAMS.get(tag)
-                if exp is None:
+                if num == 0:
+                    add(S, f"{tag2} 参数指纹", "INFO", "ckpt 非标准状态字典，跳过")
+                elif exp is None:
                     add(S, f"{tag2} 参数量", "INFO", f"{num}（非主阶梯标签，跳过指纹）")
                 else:
                     add(S, f"{tag2} 参数指纹", "PASS" if num == exp else "FAIL", f"{num}（期望 {exp}）")
@@ -429,8 +476,11 @@ def main():
     ap.add_argument("--full-nan", action="store_true", help="全库 NaN/Inf 扫描（慢）")
     ap.add_argument("--runs", action="store_true", help="检查 runs 产物")
     ap.add_argument("--manifest", default=None, help="MANIFEST 文件路径（哈希对账，慢）")
+    ap.add_argument("--out-dir", default=None,
+                    help="报告输出目录（默认=root；沙箱只读时可指向可写目录）")
     a = ap.parse_args()
     root = os.path.abspath(a.root)
+    out_dir = os.path.abspath(a.out_dir) if a.out_dir else root
     if not os.path.isdir(root):
         print(f"[FAIL] root 不存在: {root}"); sys.exit(1)
     t0 = time.time()
@@ -449,8 +499,9 @@ def main():
     print(f"\n=== 汇总: PASS={n_pass} WARN={n_warn} FAIL={n_fail} 用时 {time.time() - t0:.0f}s ===")
     print("结论: " + ("可以发车" if n_fail == 0 else "存在 FAIL，先解决再发车"))
     ts = time.strftime("%Y%m%d_%H%M%S")
+    os.makedirs(out_dir, exist_ok=True)
     for ext in ("md", "json"):
-        rep = os.path.join(root, f"data_check_report.{ext}")
+        rep = os.path.join(out_dir, f"data_check_report.{ext}")
         if ext == "md":
             with open(rep, "w", encoding="utf-8") as f:
                 f.write(f"# 数据体检 {ts}\n\nPASS={n_pass} WARN={n_warn} FAIL={n_fail}\n\n")
