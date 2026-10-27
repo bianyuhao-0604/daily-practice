@@ -1,6 +1,0 @@
-logs/
-workdir/
-__pycache__/
-*.npz
-*.npy
-_smoke_runs/
