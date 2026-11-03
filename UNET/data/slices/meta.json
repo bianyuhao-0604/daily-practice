@@ -1,0 +1,15 @@
+{
+ "train": {
+  "cases": 53,
+  "pos": 1482,
+  "neg": 1482,
+  "total": 2964
+ },
+ "val": {
+  "cases": 10,
+  "pos": 175,
+  "neg": 175,
+  "total": 350
+ },
+ "leakage_check": "pass"
+}

@@ -1,0 +1,65 @@
+{
+ "name": "DummyLung",
+ "modality": {
+  "0": "CT"
+ },
+ "training": [
+  {
+   "image": "imagesTr/lung_001.nii.gz",
+   "label": "labelsTr/lung_001.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_002.nii.gz",
+   "label": "labelsTr/lung_002.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_003.nii.gz",
+   "label": "labelsTr/lung_003.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_004.nii.gz",
+   "label": "labelsTr/lung_004.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_005.nii.gz",
+   "label": "labelsTr/lung_005.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_006.nii.gz",
+   "label": "labelsTr/lung_006.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_007.nii.gz",
+   "label": "labelsTr/lung_007.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_008.nii.gz",
+   "label": "labelsTr/lung_008.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_009.nii.gz",
+   "label": "labelsTr/lung_009.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_010.nii.gz",
+   "label": "labelsTr/lung_010.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_011.nii.gz",
+   "label": "labelsTr/lung_011.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_012.nii.gz",
+   "label": "labelsTr/lung_012.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_013.nii.gz",
+   "label": "labelsTr/lung_013.nii.gz"
+  },
+  {
+   "image": "imagesTr/lung_014.nii.gz",
+   "label": "labelsTr/lung_014.nii.gz"
+  }
+ ],
+ "test": []
+}
