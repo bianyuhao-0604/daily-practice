@@ -1,9 +1,0 @@
-{
-  "source": "HI-II-14",
-  "num_proteins": 4110,
-  "num_edges": 13115,
-  "num_positive_paths": 200000,
-  "num_negative_paths": 200000,
-  "path_length": 3,
-  "num_nodes_per_path": 4
-}
