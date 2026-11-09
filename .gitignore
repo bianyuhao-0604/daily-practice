@@ -144,6 +144,7 @@ torch_final/Lib/site-packages/torch/lib/cusparse64_12.dll
 torch_final/Lib/site-packages/torch/lib/dnnl.lib
 torch_final/Lib/site-packages/torch/lib/torch_cpu.dll
 torch_final/Lib/site-packages/torch/lib/torch_cuda.dll
+20261109/ddpm-cifar10-32
 # 数据类大文件
 *.fa
 *.fasta
