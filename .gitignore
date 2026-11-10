@@ -183,3 +183,19 @@ cache.pki
 db.dat
 db.dir
 events.jsonl
+# ===== 虚拟环境 =====
+Calculator/.qtcreator/
+**/venv/
+**/.venv/
+**/Python_*venv/
+**/site-packages/
+
+# ===== Python 缓存 =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# ===== 大模型权重（下面会单独说明）=====
+20261109/ddpm-celebahq-256-pretrained/

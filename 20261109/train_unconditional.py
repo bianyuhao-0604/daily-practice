@@ -94,6 +94,13 @@ def parse_args():
         help="The config of the UNet model to train, leave as None to use standard DDPM configuration.",
     )
     parser.add_argument(
+    "--pretrained_model_name_or_path",
+    type=str,
+    default=None,
+    help="Path or hub id of a pretrained UNet to finetune (e.g. google/ddpm-celebahq-256).",
+    )
+
+    parser.add_argument(
         "--train_data_dir",
         type=str,
         default=None,
@@ -376,33 +383,34 @@ def main(args):
             ).repo_id
 
     # Initialize the model
-    if args.model_config_name_or_path is None:
+    if args.pretrained_model_name_or_path is not None:
+    # 微调：加载完整预训练权重
+        model = UNet2DModel.from_pretrained(
+        args.pretrained_model_name_or_path, subfolder="unet"
+        )
+    # 用预训练模型的分辨率覆盖命令行参数，防止不匹配
+        args.resolution = model.config.sample_size
+        print(f"从 {args.pretrained_model_name_or_path} 加载预训练权重，分辨率 {args.resolution}")
+    elif args.model_config_name_or_path is None:
         model = UNet2DModel(
-            sample_size=args.resolution,
-            in_channels=3,
-            out_channels=3,
-            layers_per_block=2,
-            block_out_channels=(128, 128, 256, 256, 512, 512),
-            down_block_types=(
-                "DownBlock2D",
-                "DownBlock2D",
-                "DownBlock2D",
-                "DownBlock2D",
-                "AttnDownBlock2D",
-                "DownBlock2D",
-            ),
-            up_block_types=(
-                "UpBlock2D",
-                "AttnUpBlock2D",
-                "UpBlock2D",
-                "UpBlock2D",
-                "UpBlock2D",
-                "UpBlock2D",
-            ),
+        sample_size=args.resolution,
+        in_channels=3,
+        out_channels=3,
+        layers_per_block=2,
+        block_out_channels=(128, 128, 256, 256, 512, 512),
+        down_block_types=(
+            "DownBlock2D", "DownBlock2D", "DownBlock2D",
+            "DownBlock2D", "AttnDownBlock2D", "DownBlock2D",
+        ),
+        up_block_types=(
+            "UpBlock2D", "AttnUpBlock2D", "UpBlock2D",
+            "UpBlock2D", "UpBlock2D", "UpBlock2D",
+        ),
         )
     else:
         config = UNet2DModel.load_config(args.model_config_name_or_path)
         model = UNet2DModel.from_config(config)
+
 
     # Create EMA for the model.
     if args.use_ema:
